@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package inventoryservice;
+
+option java_package = "com.miempresa.inventoryservice";
+option java_outer_classname = "InventoryServiceProto";
+
+service InventoryService {
+    rpc AddProduct (AddProductRequest) returns (AddProductResponse);
+    rpc GetProduct (GetProductRequest) returns (GetProductResponse);
+    rpc UpdateProduct (UpdateProductRequest) returns (UpdateProductResponse);
+}
+
+message AddProductRequest {
+    string product_id = 1;
+    string name = 2;
+    string description = 3;
+    int32 quantity = 4;
+    double price = 5;
+}
+
+message AddProductResponse {
+    string product_id = 1;
+    string name = 2;
+    string status = 3;
+}
+
+message GetProductRequest {
+    string product_id = 1;
+}
+
+message GetProductResponse {
+    string product_id = 1;
+    string name = 2;
+    string description = 3;
+    int32 quantity = 4;
+    double price = 5;
+}
+
+message UpdateProductRequest {
+    string product_id = 1;
+    string name = 2;
+    string description = 3;
+    int32 quantity = 4;
+    double price = 5;
+}
+
+message UpdateProductResponse {
+    string product_id = 1;
+    string name = 2;
+    string status = 3;
+}
