@@ -4,17 +4,27 @@ spring:
   config:
     import: optional:configserver:http://localhost:8888
 
-
   cloud:
     gateway:
-          discovery:
-            locator:
-              enable: true
-          routes:
-            - id: all-routes
-              uri: http://127.0.0.1:8000
-              predicates:
-                - Path=/**
+      discovery:
+        locator:
+          enable: true
+      routes:
+        - id: all-routes
+          uri: http://127.0.0.1:8000
+          predicates:
+            - Path=/**
+          filters:
+            - AddRequestHeader=X-Request-Foo, Bar
+            - AddResponseHeader=X-Response-Foo, Baz
+
+logging:
+  level:
+    org.springframework.web: INFO
+    org.springframework.cloud.gateway: DEBUG
+  file:
+    name: logs/api-gateway.log  # Nombre y ruta del archivo de logs
+
 eureka:
   client:
     register-with-eureka: false
