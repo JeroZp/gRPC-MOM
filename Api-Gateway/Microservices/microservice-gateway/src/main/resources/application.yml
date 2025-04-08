@@ -1,16 +1,23 @@
-server:
-  port: 8080
-
 spring:
   application:
     name: api-gateway
+  config:
+    import: optional:configserver:http://localhost:8888
+
+
   cloud:
     gateway:
-      discovery:
-        locator:
-          enable: true
-      routes:
-        - id: students
-          url: //Url del microservicio
-          predicate:
-            - Path=/api/apiname/**
+          discovery:
+            locator:
+              enable: true
+          routes:
+            - id: all-routes
+              uri: http://127.0.0.1:8000
+              predicates:
+                - Path=/**
+eureka:
+  client:
+    register-with-eureka: false
+
+server:
+  port: 8080

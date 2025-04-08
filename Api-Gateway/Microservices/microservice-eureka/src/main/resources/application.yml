@@ -1,6 +1,3 @@
-server:
-  port: 8761
-
 spring:
   application:
     name: server-eureka
@@ -8,11 +5,3 @@ spring:
     import: optional:configserver:http://localhost:8888
 
 
-eureka:
-  instance:
-    hostname: localhost
-  client:
-    register-with-eureka: false
-    fetch-registry: false
-    server-url:
-      default-zone: http://localhost:${server.port}/eureka
