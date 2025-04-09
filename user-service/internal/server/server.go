@@ -4,6 +4,7 @@ import (
 	"log"
 	"net"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 
 	pb "github.com/JeroZp/gRPC-MOM/user-service/proto"
 	"github.com/JeroZp/gRPC-MOM/user-service/internal/service"
@@ -25,6 +26,9 @@ func StartGRPCServer(address string) {
 
 	// Se registra el servicio de usuario en el servidor gRPC.
 	pb.RegisterUserServiceServer(grpcServer, userService)
+
+	// Se habilita la reflexión para el servidor gRPC.
+	reflection.Register(grpcServer)
 
 	log.Printf("Servidor gRPC de UserService escuchando en %s", address)
 

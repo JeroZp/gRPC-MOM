@@ -31,6 +31,8 @@ func (s *UserService) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 	newID := uuid.New().String()
 	user := req.GetUser()
 	user.Id = newID
+	user.Credits = 1000
+
 	s.users[newID] = user
 
 	return &pb.CreateUserResponse{User: user}, nil
