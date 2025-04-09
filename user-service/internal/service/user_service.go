@@ -5,7 +5,7 @@ import (
 	"errors"
 	"sync"
 
-	pb "github.com/JeroZp/Proyecto1-RPC-MOM/user-service/proto"
+	pb "github.com/JeroZp/gRPC-MOM/user-service/proto"
 	"github.com/google/uuid"
 )
 

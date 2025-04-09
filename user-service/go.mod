@@ -1,4 +1,4 @@
-module github.com/JeroZp/Proyecto1-RPC-MOM/user-service
+module github.com/JeroZp/gRPC-MOM/user-service
 
 go 1.23.6
 

@@ -2,7 +2,7 @@ package main
 
 import (
     "log"
-    "github.com/JeroZp/Proyecto1-RPC-MOM/user-service/internal/server"
+    "github.com/JeroZp/gRPC-MOM/user-service/internal/server"
 )
 
 func main() {

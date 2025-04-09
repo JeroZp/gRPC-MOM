@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package user;
 
-option go_package = "github.com/JeroZp/Proyecto1-RPC-MOM/user-service/proto;user";
+option go_package = "github.com/JeroZp/gRPC-MOM/user-service/proto;user";
 
 // Definición de los mensajes para los usuarios
 message User {
