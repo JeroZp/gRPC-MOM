@@ -2,7 +2,7 @@ package main
 
 import (
 	"log"
-	"github.com/JeroZp/Proyecto1-RPC-MOM/API-Gateway/internal/router"
+	"github.com/JeroZp/gRPC-MOM/API-Gateway/internal/router"
 	"github.com/gin-gonic/gin"
 )
 
