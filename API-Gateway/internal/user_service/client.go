@@ -1,19 +1,24 @@
-package client
+package user_service
 
 import (
 	"log"
 	"google.golang.org/grpc"
-	"github.com/JeroZp/gRPC-MOM/API-Gateway/internal/user_service/proto"
+	"google.golang.org/grpc/credentials/insecure" // Para credenciales inseguras
+	"github.com/JeroZp/gRPC-MOM/API-Gateway/internal/user_service/proto" // Paquete generado por protoc
 )
 
 var UserClient proto.UserServiceClient
 
-// Inicializa el cliente gRPC para el microservicio de usuarios
 func init() {
-	// Conexión con el microservicio gRPC
-	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
+	// Establecer la conexión con el microservicio de usuarios
+	client, err := grpc.NewClient(
+		"localhost:50051",             // Dirección del microservicio
+		grpc.WithTransportCredentials(insecure.NewCredentials()), // Usamos credenciales inseguras
+	)
 	if err != nil {
-		log.Fatalf("No se pudo conectar con el microservicio gRPC: %v", err)
+		log.Fatalf("No se pudo conectar al microservicio gRPC: %v", err)
 	}
-	UserClient = proto.NewUserServiceClient(conn)
+
+	// Crear el cliente gRPC
+	UserClient = proto.NewUserServiceClient(client)
 }

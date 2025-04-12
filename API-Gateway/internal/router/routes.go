@@ -8,6 +8,6 @@ import (
 // SetupRoutes define todas las rutas REST
 func SetupRoutes(r *gin.Engine) {
 	// Rutas REST
-	r.POST("/register", client.RegisterUser)
-	r.GET("/user/:id", client.GetUser)
+	r.POST("/register", user_service.RegisterUser)
+	r.GET("/user/:id", user_service.GetUser)
 }
