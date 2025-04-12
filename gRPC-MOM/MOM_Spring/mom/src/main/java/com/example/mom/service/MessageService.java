@@ -2,44 +2,33 @@ package com.example.mom.service;
 
 import com.example.mom.MessageRepository;
 import com.example.mom.model.Message;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.grpc.StatusRuntimeException;
+import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
-
+import user.*;
 import java.util.*;
 
 @Service
 public class MessageService {
 
-    private final RestTemplate restTemplate = new RestTemplate();
-
     private final MessageRepository messageRepository;
 
-    // Mapa de destinos dinámico
-    private final Map<String, String> destinoMap = Map.of(
-            "servicioA", "http://localhost:8081/api/procesar",
-            "servicioB", "http://localhost:8082/api/procesar"
-    );
+    @GrpcClient("user-service") // nombre del microservicio gRPC (definido en application.yml)
+    private UserServiceGrpc.UserServiceBlockingStub userStub;
 
     public MessageService(MessageRepository messageRepository) {
         this.messageRepository = messageRepository;
     }
 
     public void enqueue(Message message) {
-        String url = destinoMap.get(message.getDestination());
-
-        if (url == null) {
-            System.out.println("Destino desconocido: " + message.getDestination());
-            return;
-        }
-
         try {
-            restTemplate.postForEntity(url, message, Void.class);
-            System.out.println("Mensaje entregado a " + message.getDestination());
-        } catch (RestClientException e) {
+            processGrpc(message);
+        } catch (Exception e) {
             messageRepository.save(message);
-            System.out.println("Fallo entrega. Mensaje guardado para " + message.getDestination());
+            System.out.println("Fallo gRPC. Mensaje guardado para reintento.");
         }
     }
 
@@ -47,22 +36,65 @@ public class MessageService {
     public void reintentarEntregas() {
         List<Message> pendientes = messageRepository.findAll();
         for (Message msg : pendientes) {
-            String url = destinoMap.get(msg.getDestination());
-
-            if (url == null) {
-                System.out.println("Destino desconocido: " + msg.getDestination());
-                messageRepository.deleteById(msg.getId());
-                continue;
-            }
-
             try {
-                restTemplate.postForEntity(url, msg, Void.class);
+                processGrpc(msg);
                 messageRepository.deleteById(msg.getId());
                 System.out.println("Mensaje reenviado y eliminado: " + msg.getMessageId());
-            } catch (RestClientException e) {
-                System.out.println("Fallo reenvío a: " + msg.getDestination());
+            } catch (Exception e) {
+                System.out.println("Fallo reenvío gRPC. Se mantiene en BD.");
             }
         }
+    }
+
+    private void processGrpc(Message message) throws Exception {
+        Map<String, String> payload = new ObjectMapper().readValue(
+                message.getPayloadJson(), new TypeReference<>() {});
+
+        switch (message.getOperation()) {
+            case "CreateUser":
+                CreateUserRequest createUserReq = CreateUserRequest.newBuilder()
+                        .setUser(UserOuterClass.User.newBuilder()
+                                .setId(payload.get("id"))
+                                .setName(payload.get("name"))
+                                .setEmail(payload.get("email"))
+                                .setCredits(Integer.parseInt(payload.get("credits")))
+                                .build())
+                        .build();
+                userStub.createUser(createUserReq);
+                break;
+
+            case "GetUser":
+                GetUserRequest getUserReq = GetUserRequest.newBuilder()
+                        .setId(payload.get("id"))
+                        .build();
+                userStub.getUser(getUserReq);
+                break;
+
+            case "DeleteUser":
+                DeleteUserRequest deleteUserReq = DeleteUserRequest.newBuilder()
+                        .setId(payload.get("id"))
+                        .build();
+                userStub.deleteUser(deleteUserReq);
+                break;
+
+            case "UpdateUser":
+                UpdateUserRequest updateUserReq = UpdateUserRequest.newBuilder()
+                        .setUser(UserOuterClass.User.newBuilder()
+                                .setId(payload.get("id"))
+                                .setName(payload.get("name"))
+                                .setEmail(payload.get("email"))
+                                .setCredits(Integer.parseInt(payload.get("credits")))
+                                .build())
+                        .build();
+                userStub.updateUser(updateUserReq);
+                break;
+
+            default:
+                System.out.println("Operación desconocida: " + message.getOperation());
+                throw new IllegalArgumentException("Operación no soportada");
+        }
+
+        System.out.println("Operación gRPC ejecutada: " + message.getOperation());
     }
 
     public int getQueueSize() {
@@ -79,9 +111,7 @@ public class MessageService {
         return null;
     }
 
-    public List<Message>  getAllPendingMessages(){
-        return  messageRepository.findAll();
+    public List<Message> getAllPendingMessages() {
+        return messageRepository.findAll();
     }
-
-
 }

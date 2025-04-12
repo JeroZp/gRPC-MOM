@@ -46,7 +46,7 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<optional>true</optional>
+			<scope>provided</scope>
 		</dependency>
 
 		<!-- Devtools (solo para desarrollo) -->
@@ -63,8 +63,44 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-	</dependencies>
 
+		<!-- gRPC Client Spring Boot Starter -->
+		<dependency>
+			<groupId>net.devh</groupId>
+			<artifactId>grpc-client-spring-boot-starter</artifactId>
+			<version>2.15.0.RELEASE</version>
+		</dependency>
+
+		<!-- gRPC -->
+		<dependency>
+			<groupId>io.grpc</groupId>
+			<artifactId>grpc-netty-shaded</artifactId>
+			<version>1.62.2</version>
+		</dependency>
+		<dependency>
+			<groupId>io.grpc</groupId>
+			<artifactId>grpc-protobuf</artifactId>
+			<version>1.62.2</version>
+		</dependency>
+		<dependency>
+			<groupId>io.grpc</groupId>
+			<artifactId>grpc-stub</artifactId>
+			<version>1.62.2</version>
+		</dependency>
+
+		<!-- Protobuf -->
+		<dependency>
+			<groupId>com.google.protobuf</groupId>
+			<artifactId>protobuf-java</artifactId>
+			<version>3.25.1</version>
+		</dependency>
+	</dependencies>
+	<repositories>
+		<repository>
+			<id>central</id>
+			<url>https://repo.maven.apache.org/maven2</url>
+		</repository>
+	</repositories>
 	<build>
 		<plugins>
 			<!-- Compilador para Java 21 -->
@@ -77,14 +113,47 @@
 				</configuration>
 			</plugin>
 
-			<!-- Spring Boot Plugin -->
+			<!-- Plugin para Spring Boot -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<version>3.4.4</version>
 				<configuration>
-					<mainClass>com.example.mom.MomApplication</mainClass> <!-- Ajusta si tu clase principal está en otro paquete -->
+					<mainClass>com.example.mom.MomApplication</mainClass>
 				</configuration>
+			</plugin>
+
+			<!-- os-maven-plugin -->
+			<plugin>
+				<groupId>kr.motd.maven</groupId>
+				<artifactId>os-maven-plugin</artifactId>
+				<version>1.7.1</version> <!-- <== CAMBIO importante -->
+				<executions>
+					<execution>
+						<goals>
+							<goal>detect</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- protobuf-maven-plugin -->
+			<plugin>
+				<groupId>org.xolstice.maven.plugins</groupId>
+				<artifactId>protobuf-maven-plugin</artifactId>
+				<version>0.5.1</version>
+				<configuration>
+					<protoSourceRoot>src/main/proto</protoSourceRoot> <!-- Asegúrate de que esté correctamente apuntando a tus archivos .proto -->
+					<outputDirectory>src/main/java/com/example/mom/proto</outputDirectory> <!-- El directorio de salida para los archivos generados -->
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>compile</goal>
+							<goal>compile-custom</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

@@ -1,10 +1,17 @@
 package com.example.mom.model;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.io.IOException;
+import java.util.Map;
+
 @Entity
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor
+@Getter @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Message {
 
     @Id
@@ -12,38 +19,14 @@ public class Message {
     private Long id;
 
     private String messageId;
-    private String content;
-    private String destination;
 
-    public Long getId() {
-        return id;
-    }
+    private String operation;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    @Lob
+    private String payloadJson; // JSON en formato String
 
-    public String getMessageId() {
-        return messageId;
-    }
-
-    public void setMessageId(String messageId) {
-        this.messageId = messageId;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public String getDestination() {
-        return destination;
-    }
-
-    public void setDestination(String destination) {
-        this.destination = destination;
+    public Map<String, String> getPayloadAsMap() throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.readValue(this.payloadJson, new TypeReference<>() {});
     }
 }

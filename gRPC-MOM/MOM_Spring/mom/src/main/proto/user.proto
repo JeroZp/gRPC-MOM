@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+
+
+package user;
+
+option java_package = "com.example.mom.grpc";
+option java_outer_classname = "UserProto";
+
+
+option go_package = "github.com/JeroZp/gRPC-MOM/user-service/proto;user";
+
+// Definición de los mensajes para los usuarios
+message User {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  int32 credits = 4;
+}
+
+// Mensajes para el registro (CreateUser)
+message CreateUserRequest {
+  User user = 1;
+}
+message CreateUserResponse {
+  User user = 1;
+}
+
+// Mensajes para el inicio de sesión (LoginUser)
+message LoginUserRequest {
+  string name = 1;
+  string email = 2;
+}
+message LoginUserResponse {
+  User user = 1;
+}
+
+// Mensajes para obtener un usuario por su id
+message GetUserRequest {
+  string id = 1;
+}
+message GetUserResponse {
+  User user = 1;
+}
+
+// Mensajes para actualización de usuario
+message UpdateUserRequest {
+  User user = 1;
+}
+message UpdateUserResponse {
+  User user = 1;
+}
+
+// Mensajes para eliminar un usuario
+message DeleteUserRequest {
+  string id = 1;
+}
+message DeleteUserResponse {
+  string message = 1;
+}
+
+// Mensajes para listar usuarios
+message ListUsersRequest {}
+message ListUsersResponse {
+  repeated User users = 1;
+}
+
+service UserService {
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  rpc LoginUser(LoginUserRequest) returns (LoginUserResponse);
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+}
