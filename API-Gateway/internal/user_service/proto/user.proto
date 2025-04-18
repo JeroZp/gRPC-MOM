@@ -2,10 +2,8 @@ syntax = "proto3";
 
 package user;
 
-// Especifica el paquete Go para que coincida con tu módulo y la estructura del proyecto.
 option go_package = "github.com/JeroZp/gRPC-MOM/API-Gateway/internal/user_service/proto;proto";
 
-// Definición de un mensaje de Usuario
 message User {
   string id = 1;
   string name = 2;
@@ -13,27 +11,21 @@ message User {
   int32 credits = 4;
 }
 
-// Mensajes para crear un usuario
-message CreateUserRequest {
-  User user = 1;
-}
+message CreateUserRequest { User user = 1; }
+message CreateUserResponse { User user = 1; }
 
-message CreateUserResponse {
-  User user = 1;
-}
+message ListUsersRequest    {}
+message ListUsersResponse   { repeated User users = 1; }
 
-// Mensajes para obtener un usuario
-message GetUserRequest {
-  string id = 1;
-}
+message UpdateUserRequest { User user = 1; }
+message UpdateUserResponse { User user = 1; }
 
-message GetUserResponse {
-  User user = 1;
-}
+message DeleteUserRequest { string id = 1; }
+message DeleteUserResponse { string message = 1; }
 
-// Definición del servicio
 service UserService {
-  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
-  rpc GetUser(GetUserRequest) returns (GetUserResponse);
-  // Puedes agregar otros métodos según sea necesario.
+  rpc CreateUser(CreateUserRequest)   returns (CreateUserResponse);
+  rpc ListUsers(ListUsersRequest)     returns (ListUsersResponse);
+  rpc UpdateUser(UpdateUserRequest)   returns (UpdateUserResponse);
+  rpc DeleteUser(DeleteUserRequest)   returns (DeleteUserResponse);
 }

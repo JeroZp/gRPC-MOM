@@ -13,7 +13,7 @@ func init() {
 	// Establecer la conexión con el microservicio de usuarios
 	client, err := grpc.NewClient(
 		"localhost:50051",             // Dirección del microservicio
-		grpc.WithTransportCredentials(insecure.NewCredentials()), // Usamos credenciales inseguras
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
 		log.Fatalf("No se pudo conectar al microservicio gRPC: %v", err)

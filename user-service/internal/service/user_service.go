@@ -51,18 +51,6 @@ func (s *UserService) LoginUser(ctx context.Context, req *pb.LoginUserRequest) (
 	return nil, errors.New("usuario no registrado")
 }
 
-// GetUser obtiene un usuario según su id
-func (s *UserService) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.GetUserResponse, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	user, exists := s.users[req.GetId()]
-	if !exists {
-		return nil, errors.New("usuario no encontrado")
-	}
-	return &pb.GetUserResponse{User: user}, nil
-}
-
 // UpdateUser actualiza la información de un usuario
 func (s *UserService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UpdateUserResponse, error) {
 	s.mu.Lock()
@@ -88,8 +76,7 @@ func (s *UserService) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest)
 	return &pb.DeleteUserResponse{Message: "usuario eliminado"}, nil
 }
 
-// ListUsers retorna la lista de usuarios registrados  
-// (opcionalmente se podría filtrar para no incluir al usuario autenticado)
+// ListUsers retorna la lista de usuarios registrados
 func (s *UserService) ListUsers(ctx context.Context, req *pb.ListUsersRequest) (*pb.ListUsersResponse, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
