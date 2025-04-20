@@ -12,6 +12,9 @@ service StockTradingService {
 
     // UNARY - RPC -> update stock price
     rpc updateStockPrice(UpdateStockRequest) returns (UpdateStockResponse);
+
+    // UNARY - RPC -> create a new stock
+    rpc createStock(CreateStockRequest) returns (CreateStockResponse);
 }
 
 message StockRequest {
@@ -30,6 +33,16 @@ message UpdateStockRequest {
 }
 
 message UpdateStockResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message CreateStockRequest {
+    string stock_symbol = 1;
+    double initial_price = 2;
+}
+
+message CreateStockResponse {
     bool success = 1;
     string message = 2;
 }
