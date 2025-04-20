@@ -1,29 +1,35 @@
-
 syntax = "proto3";
 
 package stocktrading;
-option  java_multiple_files=true;
-option java_package="com.javatechie.grpc";
-option  java_outer_classname="StockTradingProto";
+option java_multiple_files = true;
+option java_package = "com.javatechie.grpc";
+option java_outer_classname = "StockTradingProto";
 
-
-service StockTradingService{
+service StockTradingService {
 
     // UNARY - RPC -> get current stock price
     rpc getStockPrice(StockRequest) returns (StockResponse);
 
-    //server streaming
-
+    // UNARY - RPC -> update stock price
+    rpc updateStockPrice(UpdateStockRequest) returns (UpdateStockResponse);
 }
 
-
-message StockRequest{
-    string stock_symbol=1;
+message StockRequest {
+    string stock_symbol = 1;
 }
 
-message StockResponse{
-    string stock_symbol=1;
-    double price=2;
-    string timestamp=3;
+message StockResponse {
+    string stock_symbol = 1;
+    double price = 2;
+    string timestamp = 3;
+}
 
+message UpdateStockRequest {
+    string stock_symbol = 1;
+    double new_price = 2;
+}
+
+message UpdateStockResponse {
+    bool success = 1;
+    string message = 2;
 }
