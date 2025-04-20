@@ -31,4 +31,19 @@ public class StockTradingServiceImpl extends StockTradingServiceGrpc.StockTradin
         responseObserver.onCompleted();
 
     }
+    @Override
+    public void getStockPrice(StockRequest request, StreamObserver<StockResponse> responseObserver) {
+        //StockName -> DB -> Map Response -> Return
+        String stockSymbol = request.getStockSymbol();
+        Stock stock = stockRepository.findByStockSymbol(stockSymbol);
+        StockResponse stockResponse = StockResponse.newBuilder()
+                .setStockSymbol(stock.getStockSymbol())
+                .setPrice(stock.getPrice())
+                .setTimestamp(stock.getLastUpdate().toString())
+                .build();
+
+        responseObserver.onNext(stockResponse);
+        responseObserver.onCompleted();
+
+    }
 }
