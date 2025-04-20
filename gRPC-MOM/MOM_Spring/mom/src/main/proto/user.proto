@@ -10,7 +10,7 @@ option java_outer_classname = "UserProto";
 
 option go_package = "github.com/JeroZp/gRPC-MOM/user-service/proto;user";
 
-// Definición de los mensajes para los usuarios
+
 message User {
   string id = 1;
   string name = 2;

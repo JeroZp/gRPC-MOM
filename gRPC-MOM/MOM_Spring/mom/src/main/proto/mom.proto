@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package mom;
+
+service MomService {
+  rpc EnqueueMessage(EnqueueMessageRequest) returns (EnqueueMessageResponse);
+}
+
+message EnqueueMessageRequest {
+  string service = 1;    // Ej: "user-service"
+  string method = 2;     // Ej: "RegisterUser"
+  string payload = 3;    // JSON o base64 de los datos
+}
+
+message EnqueueMessageResponse {
+  string status = 1;
+}

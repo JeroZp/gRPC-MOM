@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Cola de Mensajes</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #f5f5f5; }
+    </style>
+</head>
+<body>
+<h1>Mensajes Pendientes</h1>
+<button onclick="cargarMensajes()">🔄 Recargar</button>
+<button onclick="reintentarMensajes()">♻️ Reintentar todos</button>
+<p id="status"></p>
+<table id="tabla">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>messageId</th>
+        <th>Operación</th>
+        <th>Payload</th>
+    </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<script>
+    async function cargarMensajes() {
+        const res = await fetch('/api/messages/pendientes');
+        const mensajes = await res.json();
+        const tbody = document.querySelector('#tabla tbody');
+        tbody.innerHTML = '';
+        mensajes.forEach(m => {
+            const fila = document.createElement('tr');
+            fila.innerHTML = `
+                    <td>${m.id}</td>
+                    <td>${m.messageId}</td>
+                    <td>${m.operation}</td>
+                    <td><pre>${JSON.stringify(JSON.parse(m.payloadJson), null, 2)}</pre></td>
+                `;
+            tbody.appendChild(fila);
+        });
+
+        const statusRes = await fetch('/api/messages/status');
+        const statusText = await statusRes.text();
+        document.getElementById('status').innerText = statusText;
+    }
+
+    async function reintentarMensajes() {
+        await fetch('/api/messages/retry', { method: 'POST' });
+        cargarMensajes();
+    }
+
+    cargarMensajes();
+</script>
+</body>
+</html>

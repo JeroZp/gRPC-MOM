@@ -1,4 +1,4 @@
-package com.example.mom;
+package com.example.mom.repository;
 
 import com.example.mom.model.Message;
 import org.springframework.data.jpa.repository.JpaRepository;

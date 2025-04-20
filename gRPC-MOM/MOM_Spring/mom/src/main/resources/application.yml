@@ -1,5 +1,6 @@
 grpc:
   client:
     user-service:
-      address: "static://localhost:6565"  # Puerto del microservicio gRPC
+      address: "static://localhost:50051"
       negotiationType: plaintext
+
