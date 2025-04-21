@@ -1,2 +1,3 @@
 cli-client/node_modules
 transaction-service/node_modules
+mom-service/mom.db
