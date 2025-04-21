@@ -5,116 +5,131 @@ import grpc from "@grpc/grpc-js";
 import protoLoader from "@grpc/proto-loader";
 
 //
-// Calcular __dirname en ESM
+// 1) Calcular __dirname en ESM
 //
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
 
 //
-// Opciones para proto-loader
+// 2) Opciones comunes para proto-loader
 //
 const loaderOpts = {
-  keepCase: true,
-  longs: String,
-  enums: String,
-  defaults: true,
-  oneofs: true,
+  keepCase:  true,
+  longs:     String,
+  enums:     String,
+  defaults:  true,
+  oneofs:    true,
 };
 
 //
-// Rutas a los .proto
+// 3) Rutas a tus .proto
 //
 const USER_PROTO_PATH        = path.resolve(__dirname, "../proto/user.proto");
 const TRANSACTION_PROTO_PATH = path.resolve(__dirname, "../proto/transaction.proto");
+const MOM_PROTO_PATH         = path.resolve(__dirname, "../proto/mom.proto");
 
 //
-// Cargar definiciones
+// 4) Cargar defs
 //
-const userPackageDef = protoLoader.loadSync(USER_PROTO_PATH, loaderOpts);
-const txPackageDef   = protoLoader.loadSync(TRANSACTION_PROTO_PATH, loaderOpts);
+const userPkgDef = protoLoader.loadSync(USER_PROTO_PATH, loaderOpts);
+const txPkgDef   = protoLoader.loadSync(TRANSACTION_PROTO_PATH, loaderOpts);
+const momPkgDef  = protoLoader.loadSync(MOM_PROTO_PATH, loaderOpts);
 
-const userProto = grpc.loadPackageDefinition(userPackageDef).user;
-const txProto   = grpc.loadPackageDefinition(txPackageDef).transaction;
+const userProto = grpc.loadPackageDefinition(userPkgDef).user;
+const txProto   = grpc.loadPackageDefinition(txPkgDef).transaction;
+const momProto  = grpc.loadPackageDefinition(momPkgDef).mom;
 
 //
-// Cliente gRPC para UserService
+// 5) Clientes gRPC
 //
 const userClient = new userProto.UserService(
   "localhost:50051",
   grpc.credentials.createInsecure()
 );
 
-// Implementa la lógica de transferencia
+let txClient;   // lo inicializamos tras arrancar el server
+const momClient = new momProto.MOMService(
+  "localhost:50054",
+  grpc.credentials.createInsecure()
+);
 
+//
+// 6) Implementación de la lógica de Transferencia
+//
 function transfer(call, callback) {
-    const { from_id, to_id, amount } = call.request;
-  
-    // Obtener remitente
-    userClient.GetUser({ id: from_id }, (err, resp) => {
-      if (err) {
-        return callback(null, {
-          success: false,
-          message: `Error al obtener usuario remitente: ${err.message}`,
-        });
-      }
+  const { from_id, to_id, amount } = call.request;
 
-      const fromUser = resp.user;
-  
-      // Verificar saldo suficiente
-      if (fromUser.credits < amount) {
-        return callback(null, {
-          success: false,
-          message: "Saldo insuficiente",
-        });
-      }
-  
-      // Obtener destinatario
-      userClient.GetUser({ id: to_id }, (err2, resp2) => {
-        if (err2) {
-          return callback(null, {
-            success: false,
-            message: `Error al obtener usuario destino: ${err2.message}`,
-          });
-        }
-        const toUser = resp2.user;
-  
-        // Ajustar balances
-        fromUser.credits -= amount;
-        toUser.credits   += amount;
-  
-        // Actualizar remitente
-        userClient.UpdateUser({ user: fromUser }, err3 => {
-          if (err3) {
-            return callback(null, {
-              success: false,
-              message: `Error al actualizar remitente: ${err3.message}`,
-            });
-          }
-  
-          // Actualizar destinatario
-          userClient.UpdateUser({ user: toUser }, err4 => {
-            if (err4) {
-              return callback(null, {
-                success: false,
-                message: `Error al actualizar destinatario: ${err4.message}`,
-              });
-            }
-  
-            // Responder éxito
-            callback(null, {
-              success: true,
-              message: `Transferidos ${amount} créditos`,
-              from_user: fromUser,
-              to_user:   toUser,
-            });
+  // 6.1) Obtener remitente
+  userClient.GetUser({ id: from_id }, (err, resp) => {
+    if (err) return callback(null, { success: false, message: err.message });
+    const fromUser = resp.user;
+
+    // 6.2) Verificar créditos
+    if (fromUser.credits < amount) {
+      return callback(null, { success: false, message: "Saldo insuficiente" });
+    }
+
+    // 6.3) Obtener destinatario
+    userClient.GetUser({ id: to_id }, (err2, resp2) => {
+      if (err2) return callback(null, { success: false, message: err2.message });
+      const toUser = resp2.user;
+
+      // 6.4) Ajustar balances
+      fromUser.credits -= amount;
+      toUser.credits   += amount;
+
+      // 6.5) Actualizar remitente
+      userClient.UpdateUser({ user: fromUser }, err3 => {
+        if (err3) return callback(null, { success: false, message: err3.message });
+
+        // 6.6) Actualizar destinatario
+        userClient.UpdateUser({ user: toUser }, err4 => {
+          if (err4) return callback(null, { success: false, message: err4.message });
+
+          // 6.7) Responder éxito
+          callback(null, {
+            success: true,
+            message: `Transferidos ${amount} créditos`,
+            from_user: fromUser,
+            to_user:   toUser
           });
         });
       });
     });
-}  
+  });
+}
 
-// Montar y arrancar el servidor gRPC
+//
+// 7) Worker que consume de MOM ("tx_ops")
+//    y repite las transferencias vía gRPC sobre este mismo servicio
+//
+function startWorker() {
+  const call = momClient.Subscribe();
+  call.write({ queue: "tx_ops" });
 
+  call.on("data", msg => {
+    const { from_id, to_id, amount } = JSON.parse(msg.data.toString());
+
+    // 7.1) Llamada gRPC local a Transfer
+    txClient.Transfer({ from_id, to_id, amount }, (err, res) => {
+      if (err) {
+        console.error("Error al procesar Transfer vía MOM:", err);
+      } else {
+        console.log("Transfer vía MOM OK:", res);
+        // 7.2) ACK
+        call.write({ queue: "tx_ops", id: msg.id });
+      }
+    });
+  });
+
+  call.on("error", err => {
+    console.error("Error en suscripción MOM:", err);
+  });
+}
+
+//
+// 8) Arranque del servidor y del worker
+//
 function main() {
   const server = new grpc.Server();
   server.addService(txProto.TransactionService.service, { Transfer: transfer });
@@ -127,7 +142,16 @@ function main() {
         console.error("Error al bindear TransactionService:", err);
         process.exit(1);
       }
-      console.log(`TransactionService escuchando en :${port}`);
+      console.log(`TransactionService gRPC escuchando en :${port}`);
+
+      // Inicializar cliente local para Transfer vía gRPC 
+      txClient = new txProto.TransactionService(
+        `localhost:${port}`,
+        grpc.credentials.createInsecure()
+      );
+
+      // Arrancar el worker MOM una vez el server está listo
+      startWorker();
     }
   );
 }
