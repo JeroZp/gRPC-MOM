@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package transaction;
+
+import "user.proto";  // Reutilizas el mensaje User
+
+option go_package = "github.com/JeroZp/gRPC-MOM/transaction-service/proto;proto";
+
+// Solicitud de transferencia
+message TransferRequest {
+  string from_id = 1;
+  string to_id   = 2;
+  int32  amount  = 3;
+}
+
+// Respuesta, con los dos usuarios actualizados
+message TransferResponse {
+  bool   success   = 1;
+  string message   = 2;
+  user.User from_user = 3;
+  user.User to_user   = 4;
+}
+
+service TransactionService {
+  rpc Transfer(TransferRequest) returns (TransferResponse);
+}

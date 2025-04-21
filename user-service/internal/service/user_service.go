@@ -87,3 +87,14 @@ func (s *UserService) ListUsers(ctx context.Context, req *pb.ListUsersRequest) (
 	}
 	return &pb.ListUsersResponse{Users: userList}, nil
 }
+
+func (s *UserService) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.GetUserResponse, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	user, exists := s.users[req.GetId()]
+	if !exists {
+		return nil, errors.New("usuario no encontrado")
+	}
+	return &pb.GetUserResponse{User: user}, nil
+}

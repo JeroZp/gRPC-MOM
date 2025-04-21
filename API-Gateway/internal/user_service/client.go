@@ -4,10 +4,10 @@ import (
 	"log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure" // Para credenciales inseguras
-	"github.com/JeroZp/gRPC-MOM/API-Gateway/internal/user_service/proto" // Paquete generado por protoc
+	pb "github.com/JeroZp/gRPC-MOM/API-Gateway/internal/proto" // Paquete generado por protoc
 )
 
-var UserClient proto.UserServiceClient
+var UserClient pb.UserServiceClient
 
 func init() {
 	// Establecer la conexión con el microservicio de usuarios
@@ -20,5 +20,5 @@ func init() {
 	}
 
 	// Crear el cliente gRPC
-	UserClient = proto.NewUserServiceClient(client)
+	UserClient = pb.NewUserServiceClient(client)
 }
