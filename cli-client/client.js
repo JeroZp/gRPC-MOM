@@ -14,7 +14,9 @@ async function main() {
       { name: "Listar usuarios",  value: "read"   },
       { name: "Actualizar usuario", value: "update" },
       { name: "Borrar usuario", value: "delete" },
+      { name: "Transferir créditos", value: "transfer" },
       { name: "Salir",       value: "exit"   },
+
     ],
   });
 
@@ -55,6 +57,16 @@ async function main() {
         const { id } = await inquirer.prompt([{ name: "id", message: "ID a borrar:" }]);
         const res = await api.delete(`/user/${id}`);
         console.log("→", res.data);
+        break;
+      }
+      case "transfer": {
+        const { from_id, to_id, amount } = await inquirer.prompt([
+          { name: "from_id", message: "ID del remitente:" },
+          { name: "to_id",   message: "ID del destinatario:" },
+          { name: "amount",  message: "Cantidad a transferir:", default: 1 },
+        ]);
+        const res = await api.post("/transfer", { from_id, to_id, amount: Number(amount) });
+        console.log("→ Transferencia:", res.data);
         break;
       }
     }

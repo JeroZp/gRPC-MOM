@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"  // Para generar un ID único para el usuario
-	"github.com/JeroZp/gRPC-MOM/API-Gateway/internal/user_service/proto" // Paquete generado por protoc
+	"github.com/JeroZp/gRPC-MOM/API-Gateway/internal/proto" // Paquete generado por protoc
 )
 
 // Función para registrar un nuevo usuario (REST /register)
