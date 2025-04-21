@@ -1,0 +1,29 @@
+syntax = "proto3";
+option go_package = "github.com/JeroZp/gRPC-MOM/API-Gateway/internal/transactions_service/proto;proto";
+
+message Amount {
+    int64 amount = 1;
+    string currency = 2;
+}
+
+message Transaction {
+    string from = 1;
+    string to = 2;
+    Amount amount = 3;
+}
+
+message CreateRequest {
+    Amount amount = 1;
+    string from = 2;
+    string to = 3;
+}
+
+message CreateResponse {
+    bool success = 1;
+    string message = 2;
+    Transaction transaction = 3;
+}
+
+service Invoicer {
+    rpc Create(CreateRequest) returns (CreateResponse);
+}

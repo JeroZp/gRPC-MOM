@@ -1,0 +1,49 @@
+syntax = "proto3";
+option go_package = "github.com/JeroZp/gRPC-MOM/API-Gateway/internal/stock_trading_server/proto;proto";
+
+package stocktrading;
+option java_multiple_files = true;
+option java_package = "com.javatechie.grpc";
+option java_outer_classname = "StockTradingProto";
+
+service StockTradingService {
+
+    // UNARY - RPC -> get current stock price
+    rpc getStockPrice(StockRequest) returns (StockResponse);
+
+    // UNARY - RPC -> update stock price
+    rpc updateStockPrice(UpdateStockRequest) returns (UpdateStockResponse);
+
+    // UNARY - RPC -> create a new stock
+    rpc createStock(CreateStockRequest) returns (CreateStockResponse);
+}
+
+message StockRequest {
+    string stock_symbol = 1;
+}
+
+message StockResponse {
+    string stock_symbol = 1;
+    double price = 2;
+    string timestamp = 3;
+}
+
+message UpdateStockRequest {
+    string stock_symbol = 1;
+    double new_price = 2;
+}
+
+message UpdateStockResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message CreateStockRequest {
+    string stock_symbol = 1;
+    double initial_price = 2;
+}
+
+message CreateStockResponse {
+    bool success = 1;
+    string message = 2;
+}
