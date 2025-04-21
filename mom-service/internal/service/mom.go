@@ -26,33 +26,42 @@ func (s *MOMService) Publish(_ context.Context, req *pb.PublishRequest) (*pb.Pub
 }
 
 func (s *MOMService) Subscribe(stream pb.MOMService_SubscribeServer) error {
-	// 1) Recibimos el primer SubscribeRequest con el nombre de la cola
+	// 1) Recibir la suscripción (cola)
 	req, err := stream.Recv()
 	if err != nil {
 	  return err
 	}
-	queueName := req.GetQueue()
+	queue := req.GetQueue()
   
-	// 2) Loop: enviamos cada mensaje pendiente
 	for {
-	  id, data, err := s.store.Peek(queueName)
+	  // 2) Intentar leer el siguiente mensaje
+	  id, data, err := s.store.Peek(queue)
 	  if err != nil {
-		// si no hay mensajes, esperamos un ratito
+		// si no hay mensajes, esperamos un poco
 		time.Sleep(200 * time.Millisecond)
 		continue
 	  }
   
 	  // 3) Enviamos el mensaje al cliente
-	  if err := stream.Send(&pb.SubscribeResponse{
-		Id:   id,
-		Data: data,
-	  }); err != nil {
+	  if err := stream.Send(&pb.SubscribeResponse{Id: id, Data: data}); err != nil {
 		return err
 	  }
-	}
-  }
   
-
+	  // 4) **Ahora sí** esperamos que el consumidor confirme vía RPC Ack
+	  //    (la petición Ack llegará a otro handler, no aquí)
+	  //    así que solo bloqueamos hasta que el mensaje desaparezca de la cola.
+	  for {
+		// Intentamos peek otra vez
+		_, _, err := s.store.Peek(queue)
+		if err != nil {
+		  // el mensaje fue borrado por Ack, avanzamos al siguiente
+		  break
+		}
+		time.Sleep(100 * time.Millisecond)
+	  }
+	}
+  }  
+  
 func (s *MOMService) Ack(_ context.Context, req *pb.AckRequest) (*emptypb.Empty, error) {
   return &emptypb.Empty{}, s.store.Ack(req.Queue, req.Id)
 }

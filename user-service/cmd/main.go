@@ -40,66 +40,68 @@ func main() {
 }
 
 func startWorker(usrSvc *service.UserService) {
-	// 2.1) Crear canal al MOM usando NewClient
+	// 1) Conectamos con MOM (usando NewClient en v1.63+)
 	conn, err := grpc.NewClient(
-		"localhost:50054",
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	  "localhost:50054",
+	  grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		log.Fatalf("no se pudo conectar a MOM: %v", err)
+	  log.Fatalf("🤖 Error al conectar con MOM: %v", err)
 	}
 	defer conn.Close()
-
+  
 	momClient := mompb.NewMOMServiceClient(conn)
-
-	// 2.2) Abrir flujo de Subscribe
+  
+	// 2) Abrimos el stream de Subscribe
 	stream, err := momClient.Subscribe(context.Background())
 	if err != nil {
-		log.Fatalf("subscribe error: %v", err)
+	  log.Fatalf("🤖 Error en Subscribe: %v", err)
 	}
-	// enviamos el nombre de la cola que queremos consumir
+	// Indicamos qué cola queremos
 	if err := stream.Send(&mompb.SubscribeRequest{Queue: "user_ops"}); err != nil {
-		log.Fatalf("subscribe send: %v", err)
+	  log.Fatalf("🤖 Error enviando SubscribeRequest: %v", err)
 	}
-
-	// 2.3) Bucle infinito de recepción → procesamiento → ACK
+	log.Println("🤖 Worker suscrito a ‘user_ops’")
+  
+	// 3) Bucle de mensajes
 	for {
-		msg, err := stream.Recv()
-		if err != nil {
-			log.Printf("subscribe recv err: %v, reintentando en 1s", err)
-			time.Sleep(time.Second)
-			continue
-		}
-
-		// Deserializar payload JSON
-		var p struct {
-			Name  string `json:"name"`
-			Email string `json:"email"`
-		}
-		if err := json.Unmarshal(msg.Data, &p); err != nil {
-			log.Printf("json unmarshal: %v", err)
-			continue
-		}
-
-		// Llamada interna a CreateUser
-		if _, err := usrSvc.CreateUser(context.Background(), &userpb.CreateUserRequest{
-			User: &userpb.User{
-				Name:    p.Name,
-				Email:   p.Email,
-				Credits: 100,
-			},
-		}); err != nil {
-			log.Printf("CreateUser worker error: %v", err)
-			continue
-		}
-		log.Printf("Usuario creado vía MOM: %s", p.Email)
-
-		// Finalmente confirmamos el mensaje con RPC Ack
-		if _, err := momClient.Ack(context.Background(), &mompb.AckRequest{
-			Queue: "user_ops",
-			Id:    msg.GetId(),
-		}); err != nil {
-			log.Printf("ack error: %v", err)
-		}
+	  msg, err := stream.Recv()
+	  if err != nil {
+		log.Printf("🤖 Error Recv: %v (reintentando en 1s)", err)
+		time.Sleep(time.Second)
+		continue
+	  }
+  
+	  log.Printf("🤖 Mensaje recibido id=%s", msg.GetId())
+  
+	  // 4) Procesamos el payload
+	  var p struct{ Name, Email string }
+	  if err := json.Unmarshal(msg.GetData(), &p); err != nil {
+		log.Printf("🤖 JSON inválido: %v", err)
+		continue
+	  }
+  
+	  // 5) Creamos el usuario
+	  if _, err = usrSvc.CreateUser(context.Background(), &userpb.CreateUserRequest{
+		User: &userpb.User{
+		  Name:    p.Name,
+		  Email:   p.Email,
+		  Credits: 1000,
+		},
+	  }); err != nil {
+		log.Printf("🤖 CreateUser error: %v", err)
+		continue
+	  }
+	  log.Printf("✅ Usuario creado vía MOM: %s", p.Email)
+  
+	  // 6) ACK por RPC separado
+	  if _, err := momClient.Ack(context.Background(), &mompb.AckRequest{
+		Queue: "user_ops",
+		Id:    msg.GetId(),
+	  }); err != nil {
+		log.Printf("❌ Error en ACK: %v", err)
+	  } else {
+		log.Printf("✅ ACK enviado para id=%s", msg.GetId())
+	  }
 	}
-}
+}  
