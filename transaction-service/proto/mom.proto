@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package mom;
+
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/JeroZp/gRPC-MOM/transaction-service/proto;proto";
+
+// Publicar un mensaje en la cola 'queue'
+message PublishRequest {
+  string queue = 1;
+  bytes  data  = 2;
+}
+message PublishResponse {
+  string id = 1; // identificador interno del mensaje
+}
+
+// Para el streaming de consumo
+message SubscribeRequest {
+  string queue = 1;
+  // opcional: consumer_id, offset, etc.
+}
+
+// Mensaje que llega al consumidor
+message SubscribeResponse {
+  string id   = 1;
+  bytes  data = 2;
+}
+
+// ACK que envía el consumidor
+message AckRequest {
+  string queue = 1;
+  string id    = 2;
+}
+
+service MOMService {
+  rpc Publish(PublishRequest) returns (PublishResponse);
+  rpc Subscribe(stream SubscribeRequest) returns (stream SubscribeResponse);
+  rpc Ack(AckRequest) returns (google.protobuf.Empty);
+}
