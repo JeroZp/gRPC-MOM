@@ -15,8 +15,9 @@ async function main() {
       { name: "Actualizar usuario", value: "update" },
       { name: "Borrar usuario", value: "delete" },
       { name: "Transferir créditos", value: "transfer" },
+      { name: "Enviar notificación", value: "notify" },
+      { name: "Ver notificaciones", value: "notifications" },
       { name: "Salir",       value: "exit"   },
-
     ],
   });
 
@@ -57,6 +58,22 @@ async function main() {
         const { id } = await inquirer.prompt([{ name: "id", message: "ID a borrar:" }]);
         const res = await api.delete(`/user/${id}`);
         console.log("→", res.data);
+        break;
+      }
+      case "notify": {
+        const { user_id, title, message } = await inquirer.prompt([
+          { name:"user_id", message:"ID de usuario:" },
+          { name:"title",   message:"Título:"      },
+          { name:"message", message:"Mensaje:"     },
+        ]);
+        const res = await api.post("/notify", { user_id, title, message });
+        console.log("→ Notificación:", res.data);
+        break;
+      }
+      case "notifications": {
+        const res = await api.get("/notifications");
+        console.log("→ Notificaciones existentes:");
+        console.table(res.data);
         break;
       }
       case "transfer": {
