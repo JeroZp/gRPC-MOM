@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package notification;
+
+option go_package = "github.com/JeroZp/gRPC-MOM/API-Gateway/internal/proto;notification";
+
+message NotifyRequest {
+  string user_id = 1;
+  string title   = 2;
+  string message = 3;
+}
+message NotifyResponse {
+  bool   success = 1;
+  string info    = 2;
+}
+
+// Nuevo mensaje para listar
+message ListNotificationsRequest {}
+
+message Notification {
+  string user_id = 1;
+  string title   = 2;
+  string message = 3;
+}
+
+message ListNotificationsResponse {
+  repeated Notification notifications = 1;
+}
+
+service NotificationService {
+  rpc Notify            (NotifyRequest)               returns (NotifyResponse);
+  rpc ListNotifications (ListNotificationsRequest)    returns (ListNotificationsResponse);
+}
