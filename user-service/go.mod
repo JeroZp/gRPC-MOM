@@ -7,6 +7,7 @@ require (
 	github.com/JeroZp/gRPC-MOM/mom-service v0.0.0
 	google.golang.org/grpc v1.71.1 
 	google.golang.org/protobuf v1.36.6
+	github.com/go-sql-driver/mysql v1.7.1
 )
 
 require (

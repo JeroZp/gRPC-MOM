@@ -6,13 +6,15 @@ import (
 	"log"
 	"net"
 	"time"
+	"database/sql"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-
+	_ "github.com/go-sql-driver/mysql"
 	userpb "github.com/JeroZp/gRPC-MOM/user-service/proto"
 	"github.com/JeroZp/gRPC-MOM/user-service/internal/service"
 	mompb "github.com/JeroZp/gRPC-MOM/user-service/internal/mom-proto"
+
 )
 
 func main() {
@@ -21,8 +23,13 @@ func main() {
 	if err != nil {
 		log.Fatalf("listen: %v", err)
 	}
+	db, err := sql.Open("mysql", "user:userpassword@tcp(localhost:7001)/userdb")
+	if err != nil {
+		log.Println("Error while trying to connect to the database", err)
+		return
+	   }
 	grpcServer := grpc.NewServer()
-	usrSvc := service.NewUserService()
+	usrSvc := service.NewUserService(db)
 	userpb.RegisterUserServiceServer(grpcServer, usrSvc)
 
 	go func() {
