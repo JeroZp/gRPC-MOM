@@ -4,6 +4,9 @@ import (
 	"log"
 	"net"
 	"google.golang.org/grpc"
+	"database/sql"
+
+	_ "github.com/go-sql-driver/mysql"
 	pb "github.com/JeroZp/gRPC-MOM/notification-service/proto"
 	"github.com/JeroZp/gRPC-MOM/notification-service/internal/service"
 )
@@ -14,11 +17,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("no se pudo escuchar en el puerto 50053: %v", err)
 	}
-
+	db, err := sql.Open("mysql", "user:userpassword@tcp(localhost:7002)/userdb")
 	// Creamos el servidor gRPC
 	grpcServer := grpc.NewServer()
 
-	pb.RegisterNotificationServiceServer(grpcServer, &service.Server{})
+	pb.RegisterNotificationServiceServer(grpcServer, service.NewServer(db))
 
 	log.Println("NotificationService escuchando en :50053")
 
