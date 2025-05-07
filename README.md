@@ -8,6 +8,8 @@ Todos los componentes son aplicaciones de consola, sin interfaces web, y están 
 ---
 
 ## 🧱 Arquitectura de Microservicios
+![gRPCs-MOM](https://github.com/user-attachments/assets/3418daca-525e-4071-b8f0-c16b084ece6e)
+
 
 ### 🧑‍💼 user-service
 - **Responsabilidad**: Gestión de usuarios (registro, consulta, etc.).
